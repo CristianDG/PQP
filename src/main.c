@@ -43,8 +43,8 @@ void interpret(uint8_t *code, uint32_t length) {
       reg_id_x = get_most_significant(code[index+1]);
       reg_id_y = get_least_significant(code[index+1]);
       //R8=MEM[0x02,0x03,0x04,0x05]=[0x01,0x00,0x00,0x10]
+      registers[reg_id_x] = memory[registers[reg_id_y]];
       fprintf(output, "TODO: MOV R%d=MEM[%08X]=[%08X]", reg_id_x, registers[reg_id_y], memory[registers[reg_id_y]]);
-
 
     } break;
     case 0x03:{
