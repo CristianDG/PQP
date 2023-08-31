@@ -175,9 +175,13 @@ void interpret(uint8_t *code, uint32_t length) {
   fprintf(output, "0x%08X->EXIT\n", index);
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
   input = stdin;
   output = stdout;
+  if(argc == 3){
+    input = fopen(argv[1], "r");
+    output = fopen(argv[2], "w");
+  }
 
   uint8_t code[128] = {0};
   uint32_t byte = 0, n = 0;
