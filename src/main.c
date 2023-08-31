@@ -40,11 +40,19 @@ void interpret(uint8_t *code, uint32_t length) {
       fprintf(output, "MOV R%d=R%d=0x%08X", reg_id_x, reg_id_y, registers[reg_id_x]);
     } break;
     case 0x02:{
+      reg_id_x = get_most_significant(code[index+1]);
+      reg_id_y = get_least_significant(code[index+1]);
       //R8=MEM[0x02,0x03,0x04,0x05]=[0x01,0x00,0x00,0x10]
-      fprintf(output, "MOV R%d=MEM[]=[]", reg_id_x);
+      fprintf(output, "TODO: MOV R%d=MEM[%08X]=[%08X]", reg_id_x, registers[reg_id_y], memory[registers[reg_id_y]]);
+
+
     } break;
     case 0x03:{
-      fprintf(output, "MOV MEM[]=R%d=[]", reg_id_y);
+      // TODO
+      reg_id_x = get_most_significant(code[index+1]);
+      reg_id_y = get_least_significant(code[index+1]);
+      memory[registers[reg_id_x]] = registers[reg_id_y];
+      fprintf(output, "TODO: MOV MEM[%08X]=R%d=[%08X]", registers[reg_id_x], reg_id_y, memory[registers[reg_id_x]]);
     } break;
     case 0x04:{
       reg_id_x = get_most_significant(code[index+1]);
@@ -60,24 +68,102 @@ void interpret(uint8_t *code, uint32_t length) {
       fprintf(output, "JMP 0x%08X", index + 4);
     } break;
     case 0x06:{
+      int32_t i16 = to_big_endian(code[index+2], code[index+3]);
+      fprintf(output, "JG 0x%08X", i16 + index + 4);
+      if(gt){
+        index += i16;
+      }
     } break;
     case 0x07:{
+      int32_t i16 = to_big_endian(code[index+2], code[index+3]);
+      fprintf(output, "JL 0x%08X", i16 + index + 4);
+      if(lt){
+        index += i16;
+      }
     } break;
     case 0x08:{
+      int32_t i16 = to_big_endian(code[index+2], code[index+3]);
+      fprintf(output, "JE 0x%08X", i16 + index + 4);
+      if(eq){
+        index += i16;
+      }
     } break;
     case 0x09:{
+      reg_id_x = get_most_significant(code[index+1]);
+      reg_id_y = get_least_significant(code[index+1]);
+      fprintf(output, "ADD R%d+=R%d=0x%08X+0x%08X=0x%08X",
+              reg_id_x,
+              reg_id_y,
+              registers[reg_id_x],
+              registers[reg_id_y],
+              registers[reg_id_x] + registers[reg_id_y]);
+      registers[reg_id_x] += registers[reg_id_y];
     } break;
     case 0x0A:{
+      reg_id_x = get_most_significant(code[index+1]);
+      reg_id_y = get_least_significant(code[index+1]);
+      fprintf(output, "SUB R%d-=R%d=0x%08X-0x%08X=0x%08X",
+              reg_id_x,
+              reg_id_y,
+              registers[reg_id_x],
+              registers[reg_id_y],
+              registers[reg_id_x] - registers[reg_id_y]);
+      registers[reg_id_x] -= registers[reg_id_y];
     } break;
     case 0x0B:{
+      reg_id_x = get_most_significant(code[index+1]);
+      reg_id_y = get_least_significant(code[index+1]);
+      fprintf(output, "AND R%d&=R%d=0x%08X&0x%08X=0x%08X",
+              reg_id_x,
+              reg_id_y,
+              registers[reg_id_x],
+              registers[reg_id_y],
+              registers[reg_id_x] & registers[reg_id_y]);
+      registers[reg_id_x] &= registers[reg_id_y];
     } break;
     case 0x0C:{
+      reg_id_x = get_most_significant(code[index+1]);
+      reg_id_y = get_least_significant(code[index+1]);
+      fprintf(output, "OR R%d|=R%d=0x%08X|0x%08X=0x%08X",
+              reg_id_x,
+              reg_id_y,
+              registers[reg_id_x],
+              registers[reg_id_y],
+              registers[reg_id_x] | registers[reg_id_y]);
+      registers[reg_id_x] |= registers[reg_id_y];
     } break;
     case 0x0D:{
+      reg_id_x = get_most_significant(code[index+1]);
+      reg_id_y = get_least_significant(code[index+1]);
+      fprintf(output, "XOR R%d^=R%d=0x%08X^0x%08X=0x%08X",
+              reg_id_x,
+              reg_id_y,
+              registers[reg_id_x],
+              registers[reg_id_y],
+              registers[reg_id_x] ^ registers[reg_id_y]);
+      registers[reg_id_x] ^= registers[reg_id_y];
     } break;
     case 0x0E:{
+      reg_id_x = get_most_significant(code[index+1]);
+      uint8_t qty = code[index+3];
+      fprintf(output, "SAL R%d<<=%d=0x%08X<<%d=0x%08X",
+              reg_id_x,
+              qty,
+              registers[reg_id_x],
+              qty,
+              registers[reg_id_x] << qty);
+      registers[reg_id_x] = registers[reg_id_x] << qty;
     } break;
     case 0x0F:{
+      reg_id_x = get_most_significant(code[index+1]);
+      uint8_t qty = code[index+3];
+      fprintf(output, "SAR R%d>>=%d=0x%08X>>%d=0x%08X",
+              reg_id_x,
+              qty,
+              registers[reg_id_x],
+              qty,
+              registers[reg_id_x] >> qty);
+      registers[reg_id_x] = registers[reg_id_x] >> qty;
     } break;
     default: {
       fprintf(output, "Unknown code: 0x%02X on line, ignoring...", code[index]);
